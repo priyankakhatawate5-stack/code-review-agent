@@ -150,8 +150,9 @@ async def handle_webhook_with_agent(request: Request) -> JSONResponse:
 
     try:
         payload = json.loads(payload_body)
-    except json.JSONDecodeError:
-        logger.error("Failed to parse webhook payload")
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse webhook payload: {e}")
+        logger.error(f"Raw payload (first 500 chars): {payload_body[:500]}")
         raise HTTPException(status_code=400, detail="Invalid JSON")
 
     event_type = request.headers.get("X-GitHub-Event", "unknown")
