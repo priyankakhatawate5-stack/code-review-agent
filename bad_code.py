@@ -60,7 +60,7 @@ def fetch_api_data(url):
 
 def fetch_api_data1(url):
     response = requests.get(url, verify=False)  # SSL verification disabled
-    return response.json()
+    return response1.json()
 
 def send_password_reset(email):
     requests.post(
