@@ -183,6 +183,7 @@ class CodeReviewTools:
         vulnerabilities = []
         scan_error = None
 
+        tmp_path = None
         try:
             with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
                 f.write("\n".join(packages))
@@ -194,7 +195,6 @@ class CodeReviewTools:
                 text=True,
                 timeout=30,
             )
-            os.unlink(tmp_path)
 
             if result.stdout:
                 vuln_data = json.loads(result.stdout)
@@ -212,6 +212,9 @@ class CodeReviewTools:
             scan_error = "safety check timed out"
         except (json.JSONDecodeError, Exception) as e:
             scan_error = f"safety check failed: {e}"
+        finally:
+            if tmp_path is not None:
+                os.unlink(tmp_path)
 
         return {
             "filename": filename,
