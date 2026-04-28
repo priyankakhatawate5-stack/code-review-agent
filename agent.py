@@ -1,26 +1,26 @@
-"""Code review agent using local Ollama model via OpenAI-compatible API."""
+"""Code review agent using OpenCode (GitHub Copilot) via OpenAI-compatible API."""
 import json
 import logging
 from typing import Any, Dict
 
 from openai import OpenAI
 
-from config import OLLAMA_BASE_URL, OLLAMA_MODEL
+from config import OPENCODE_BASE_URL, OPENCODE_MODEL
 from mcp_tools import CodeReviewTools
 
 logger = logging.getLogger(__name__)
 
 
 class CodeReviewAgent:
-    """Autonomous code review agent using a local Ollama model."""
+    """Autonomous code review agent using OpenCode with GitHub Copilot."""
 
     def __init__(self, github_token: str):
         self.client = OpenAI(
-            base_url=OLLAMA_BASE_URL,
-            api_key="ollama",  # required by the client but unused by Ollama
+            base_url=OPENCODE_BASE_URL,
+            api_key="opencode",  # required by the client but unused by OpenCode
         )
         self.tools = CodeReviewTools(github_token)
-        self.model = OLLAMA_MODEL
+        self.model = OPENCODE_MODEL
 
     def _build_system_prompt(self) -> str:
         return """You are an expert code reviewer assistant. Your role is to analyze pull requests and provide comprehensive code reviews.
