@@ -143,11 +143,30 @@ Be thorough but practical. Focus on issues that truly matter."""
                 tool_choice="auto",
             )
 
-            message = response.choices[0].message
-            messages.append(message.model_dump(exclude_unset=True))
+            # Copilot API may return multiple choices for Claude models:
+            # choices[0] = content/reasoning, choices[1] = tool_calls
+            # Merge them into a single assistant message.
+            content = None
+            tool_calls = None
+            finish_reason = "stop"
 
-            finish_reason = response.choices[0].finish_reason
-            if finish_reason == "stop" or not message.tool_calls:
+            for choice in response.choices:
+                if choice.message.content:
+                    content = choice.message.content
+                if choice.message.tool_calls:
+                    tool_calls = choice.message.tool_calls
+                if choice.finish_reason == "tool_calls":
+                    finish_reason = "tool_calls"
+
+            # Build merged assistant message for conversation history
+            merged = {"role": "assistant"}
+            if content:
+                merged["content"] = content
+            if tool_calls:
+                merged["tool_calls"] = [tc.model_dump(exclude_unset=True) for tc in tool_calls]
+            messages.append(merged)
+
+            if finish_reason == "stop" or not tool_calls:
                 logger.info("Agent completed analysis")
                 return {
                     "status": "completed",
@@ -157,7 +176,7 @@ Be thorough but practical. Focus on issues that truly matter."""
                 }
 
             # Process all tool calls in this response
-            for tool_call in message.tool_calls:
+            for tool_call in tool_calls:
                 tool_name = tool_call.function.name
                 tool_input = json.loads(tool_call.function.arguments)
 

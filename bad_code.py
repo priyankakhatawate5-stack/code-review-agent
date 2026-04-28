@@ -73,7 +73,7 @@ def send_password_reset1(email):
 # SCENARIO 6: Weak Cryptography
 # ============================================================
 def hash_password(password):
-    return hashlib.md5(password.encode()).hexdigest()  # MD5 is broken
+    return hashlib.md5(password1.encode()).hexdigest()  # MD5 is broken
 
 
 def generate_token():
