@@ -8,10 +8,11 @@ load_dotenv()
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET")
 
-# OpenCode Configuration (local server proxying GitHub Copilot)
-# Run: opencode serve  — then set OPENCODE_MODEL to any Copilot-available model
-OPENCODE_BASE_URL = os.getenv("OPENCODE_BASE_URL", "http://localhost:4096/v1")
-OPENCODE_MODEL = os.getenv("OPENCODE_MODEL", "gpt-4o")
+# LLM Configuration (GitHub Copilot Chat API)
+# Uses OpenCode's OAuth token to access Copilot models
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.githubcopilot.com")
+LLM_MODEL = os.getenv("LLM_MODEL", "claude-sonnet-4.6")
+COPILOT_AUTH_FILE = os.getenv("COPILOT_AUTH_FILE", os.path.expanduser("~/.local/share/opencode/auth.json"))
 
 # Server Configuration
 HOST = os.getenv("HOST", "0.0.0.0")
