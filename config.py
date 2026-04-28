@@ -7,16 +7,15 @@ load_dotenv()
 # GitHub Configuration
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET")
-GITHUB_APP_ID = os.getenv("GITHUB_APP_ID")
-GITHUB_APP_PRIVATE_KEY = os.getenv("GITHUB_APP_PRIVATE_KEY")
 
-# Ollama Configuration (local model)
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5-coder:32b")
+# OpenCode Configuration (local server proxying GitHub Copilot)
+# Run: opencode serve  — then set OPENCODE_MODEL to any Copilot-available model
+OPENCODE_BASE_URL = os.getenv("OPENCODE_BASE_URL", "http://localhost:4096/v1")
+OPENCODE_MODEL = os.getenv("OPENCODE_MODEL", "gpt-4o")
 
 # Server Configuration
 HOST = os.getenv("HOST", "0.0.0.0")
-PORT = int(os.getenv("PORT", 8000))
+PORT = int(os.getenv("PORT", 9000))
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
 # Agent Configuration
@@ -39,5 +38,5 @@ def validate_config():
 if __name__ == "__main__":
     validate_config()
     print(f"GitHub Token: {GITHUB_TOKEN[:10]}...")
-    print(f"Ollama URL: {OLLAMA_BASE_URL}")
-    print(f"Ollama Model: {OLLAMA_MODEL}")
+    print(f"OpenCode URL: {OPENCODE_BASE_URL}")
+    print(f"OpenCode Model: {OPENCODE_MODEL}")
