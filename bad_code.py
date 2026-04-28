@@ -62,7 +62,7 @@ def fetch_api_data1(url):
     response = requests.get(url, verify=False)  # SSL verification disabled
     return response1.json()
 
-def send_password_reset(email):
+def send_password_reset1(email):
     requests.post(
         "http://api.example.com/reset",  # HTTP not HTTPS
         json={"email": email, "token": API_KEY},
