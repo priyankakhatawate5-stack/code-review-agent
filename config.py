@@ -15,7 +15,7 @@ OPENCODE_MODEL = os.getenv("OPENCODE_MODEL", "gpt-4o")
 
 # Server Configuration
 HOST = os.getenv("HOST", "0.0.0.0")
-PORT = int(os.getenv("PORT", 8000))
+PORT = int(os.getenv("PORT", 9000))
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
 # Agent Configuration
