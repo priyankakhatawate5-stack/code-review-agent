@@ -8,7 +8,8 @@ services:
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENCODE_BASE_URL=${OPENCODE_BASE_URL:-http://host.docker.internal:4096/v1}
+      - OPENCODE_MODEL=${OPENCODE_MODEL:-gpt-4o}
       - HOST=0.0.0.0
       - PORT=8000
       - DEBUG=${DEBUG:-false}
