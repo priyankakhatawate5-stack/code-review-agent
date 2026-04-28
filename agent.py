@@ -1,26 +1,45 @@
-"""Code review agent using local Ollama model via OpenAI-compatible API."""
+"""Code review agent using GitHub Copilot Chat API."""
 import json
 import logging
 from typing import Any, Dict
 
+import certifi
+import httpx
 from openai import OpenAI
 
-from config import OLLAMA_BASE_URL, OLLAMA_MODEL
+from config import LLM_BASE_URL, LLM_MODEL, COPILOT_AUTH_FILE
 from mcp_tools import CodeReviewTools
 
 logger = logging.getLogger(__name__)
 
 
+def _get_copilot_token() -> str:
+    """Read the Copilot OAuth token from OpenCode's auth file."""
+    with open(COPILOT_AUTH_FILE) as f:
+        auth = json.load(f)
+    return auth["github-copilot"]["access"]
+
+
 class CodeReviewAgent:
-    """Autonomous code review agent using a local Ollama model."""
+    """Autonomous code review agent using GitHub Copilot Chat API."""
 
     def __init__(self, github_token: str):
+        copilot_token = _get_copilot_token()
+        http_client = httpx.Client(
+            verify=certifi.where(),
+            headers={
+                "Editor-Version": "vscode/1.99.0",
+                "Editor-Plugin-Version": "copilot-chat/0.25.0",
+                "Copilot-Integration-Id": "vscode-chat",
+            },
+        )
         self.client = OpenAI(
-            base_url=OLLAMA_BASE_URL,
-            api_key="ollama",  # required by the client but unused by Ollama
+            base_url=LLM_BASE_URL,
+            api_key=copilot_token,
+            http_client=http_client,
         )
         self.tools = CodeReviewTools(github_token)
-        self.model = OLLAMA_MODEL
+        self.model = LLM_MODEL
 
     def _build_system_prompt(self) -> str:
         return """You are an expert code reviewer assistant. Your role is to analyze pull requests and provide comprehensive code reviews.
@@ -124,11 +143,30 @@ Be thorough but practical. Focus on issues that truly matter."""
                 tool_choice="auto",
             )
 
-            message = response.choices[0].message
-            messages.append(message.model_dump(exclude_unset=True))
+            # Copilot API may return multiple choices for Claude models:
+            # choices[0] = content/reasoning, choices[1] = tool_calls
+            # Merge them into a single assistant message.
+            content = None
+            tool_calls = None
+            finish_reason = "stop"
 
-            finish_reason = response.choices[0].finish_reason
-            if finish_reason == "stop" or not message.tool_calls:
+            for choice in response.choices:
+                if choice.message.content:
+                    content = choice.message.content
+                if choice.message.tool_calls:
+                    tool_calls = choice.message.tool_calls
+                if choice.finish_reason == "tool_calls":
+                    finish_reason = "tool_calls"
+
+            # Build merged assistant message for conversation history
+            merged = {"role": "assistant"}
+            if content:
+                merged["content"] = content
+            if tool_calls:
+                merged["tool_calls"] = [tc.model_dump(exclude_unset=True) for tc in tool_calls]
+            messages.append(merged)
+
+            if finish_reason == "stop" or not tool_calls:
                 logger.info("Agent completed analysis")
                 return {
                     "status": "completed",
@@ -138,7 +176,7 @@ Be thorough but practical. Focus on issues that truly matter."""
                 }
 
             # Process all tool calls in this response
-            for tool_call in message.tool_calls:
+            for tool_call in tool_calls:
                 tool_name = tool_call.function.name
                 tool_input = json.loads(tool_call.function.arguments)
 
