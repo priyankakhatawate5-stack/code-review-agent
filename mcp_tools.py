@@ -34,7 +34,7 @@ class CodeReviewTools:
             Dictionary with file changes and diffs
         """
         try:
-            repository = self.github.get_user(owner).get_repo(repo)
+            repository = self.github.get_repo(f"{owner}/{repo}")
             pull = repository.get_pull(pr_number)
 
             files_data = {
@@ -78,7 +78,7 @@ class CodeReviewTools:
             File content or error
         """
         try:
-            repository = self.github.get_user(owner).get_repo(repo)
+            repository = self.github.get_repo(f"{owner}/{repo}")
             content = repository.get_contents(file_path, ref=ref)
             return {
                 "filename": file_path,
@@ -342,7 +342,7 @@ class CodeReviewTools:
             Comment creation result
         """
         try:
-            repository = self.github.get_user(owner).get_repo(repo)
+            repository = self.github.get_repo(f"{owner}/{repo}")
             pull = repository.get_pull(pr_number)
             comment = pull.create_issue_comment(body)
 
@@ -373,7 +373,7 @@ class CodeReviewTools:
             Review creation result
         """
         try:
-            repository = self.github.get_user(owner).get_repo(repo)
+            repository = self.github.get_repo(f"{owner}/{repo}")
             pull = repository.get_pull(pr_number)
 
             # Create a review that requests changes
@@ -404,7 +404,7 @@ class CodeReviewTools:
             Review creation result
         """
         try:
-            repository = self.github.get_user(owner).get_repo(repo)
+            repository = self.github.get_repo(f"{owner}/{repo}")
             pull = repository.get_pull(pr_number)
 
             review = pull.create_review(body=body, event="APPROVE")
