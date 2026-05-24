@@ -1,14 +1,12 @@
 """MCP Tool definitions for the Code Review Agent."""
+import ast
 import json
 import logging
 import re
 import subprocess
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List
 
-import requests
 from github import Github, GithubException
-
-from config import GITHUB_TOKEN
 
 logger = logging.getLogger(__name__)
 
@@ -220,9 +218,14 @@ class CodeReviewTools:
             "scan_error": scan_error,
         }
 
-    def run_pylint(self, file_path: str, content: str) -> Dict[str, Any]:
+    def run_quality_checks(self, file_path: str, content: str) -> Dict[str, Any]:
         """
-        Run basic code quality checks using pylint patterns.
+        Run lightweight Python code-quality checks: unused imports
+        (via AST), long lines, and TODO/FIXME markers.
+
+        Unused-import detection uses the ast module rather than regex
+        so it correctly handles `from x import y`, aliased imports, and
+        avoids false positives from name mentions inside strings.
 
         Args:
             file_path: Path to file
@@ -232,22 +235,47 @@ class CodeReviewTools:
             Code quality issues
         """
         issues = []
-
-        # Check for common issues (simplified pylint checks)
         lines = content.split("\n")
 
-        for i, line in enumerate(lines, 1):
-            # Check for unused imports (basic pattern)
-            match = re.match(r"^import\s+(\w+)\s*$", line)
-            if match and match.group(1) not in "\n".join(lines[i:]):
-                issues.append({
-                    "line": i,
-                    "type": "unused-import",
-                    "message": f"Unused import: {line.strip()}",
-                    "severity": "low",
-                })
+        # Unused-import detection via AST
+        try:
+            tree = ast.parse(content, filename=file_path)
+        except SyntaxError:
+            # Skip AST-based checks if file doesn't parse; syntax errors
+            # are reported separately by analyze_syntax.
+            tree = None
 
-            # Check for very long lines
+        if tree is not None:
+            imported_names: Dict[str, int] = {}
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        name = alias.asname or alias.name.split(".")[0]
+                        imported_names[name] = node.lineno
+                elif isinstance(node, ast.ImportFrom):
+                    for alias in node.names:
+                        if alias.name == "*":
+                            continue
+                        name = alias.asname or alias.name
+                        imported_names[name] = node.lineno
+
+            used_names = {
+                node.id for node in ast.walk(tree) if isinstance(node, ast.Name)
+            } | {
+                node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)
+            }
+
+            for name, lineno in imported_names.items():
+                if name not in used_names:
+                    issues.append({
+                        "line": lineno,
+                        "type": "unused-import",
+                        "message": f"Unused import: {name}",
+                        "severity": "low",
+                    })
+
+        # Line-level checks
+        for i, line in enumerate(lines, 1):
             if len(line) > 100:
                 issues.append({
                     "line": i,
@@ -255,8 +283,6 @@ class CodeReviewTools:
                     "message": f"Line is too long ({len(line)} > 100 characters)",
                     "severity": "low",
                 })
-
-            # Check for TODO comments
             if "TODO" in line or "FIXME" in line:
                 issues.append({
                     "line": i,
@@ -486,8 +512,8 @@ class CodeReviewTools:
                 },
             },
             {
-                "name": "run_pylint",
-                "description": "Run code quality checks",
+                "name": "run_quality_checks",
+                "description": "Run lightweight Python code-quality checks: unused imports (via AST), long lines, and TODO/FIXME markers",
                 "input_schema": {
                     "type": "object",
                     "properties": {

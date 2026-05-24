@@ -25,7 +25,7 @@
   - `analyze_syntax` - Syntax error detection
   - `detect_secrets` - Security: Find hardcoded credentials
   - `check_dependencies` - Vulnerability scanning
-  - `run_pylint` - Code quality analysis
+  - `run_quality_checks` - Code quality analysis
   - `suggest_refactoring` - Refactoring opportunities
 - [x] GitHub interaction tools:
   - `post_review_comment` - Add PR comments
@@ -232,7 +232,7 @@ python main.py
 3. **analyze_syntax** - Syntax error detection
 4. **detect_secrets** - Security: hardcoded credentials
 5. **check_dependencies** - Vulnerable packages
-6. **run_pylint** - Code quality metrics
+6. **run_quality_checks** - Code quality metrics
 7. **suggest_refactoring** - Refactoring opportunities
 
 ### Action Tools
