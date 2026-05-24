@@ -48,12 +48,6 @@ htmlcov/
 *.log
 logs/
 
-# Docker
-.dockerignore
-
-# GitHub
-.github/
-
 # Node (if using npm tools)
 node_modules/
 package-lock.json
