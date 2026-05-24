@@ -9,12 +9,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from config import (
-    HOST,
-    PORT,
-    DEBUG,
-    GITHUB_WEBHOOK_SECRET,
-)
+from config import GITHUB_WEBHOOK_SECRET
 
 # Configure logging
 logging.basicConfig(
@@ -89,8 +84,5 @@ async def root() -> dict:
     }
 
 
-if __name__ == "__main__":
-    import uvicorn
-
-    logger.info(f"Starting Code Review Agent on {HOST}:{PORT}")
-    uvicorn.run(app, host=HOST, port=PORT)
+# Entry point lives in main.py — it wires this FastAPI app to the agent
+# by registering the /webhook handler. Run `python main.py` to start.
