@@ -1,0 +1,53 @@
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Secrets — never bake these into images
+.env
+.env.local
+.env.*.local
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Docs — not needed at runtime
+README.md
+QUICKSTART.md
+PROJECT_SUMMARY.md
+
+# Tests — run in CI, not in the runtime image
+test_*.py
+*_test.py
+tests/
+
+# CI config — runs on GitHub, not inside the container
+.github/
+
+# Local logs / coverage artifacts
+*.log
+htmlcov/
+.coverage
+coverage.xml
